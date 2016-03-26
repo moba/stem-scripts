@@ -47,9 +47,12 @@ for desc in exits_sorted:
     accumulated_bw += desc.observed_bandwidth
     top_relays.append(desc)
     if desc.contact in top_contacts:
-        top_contacts[desc.contact]+=1
+        contact_bw, contact_count = top_contacts[desc.contact]
+        contact_bw += desc.observed_bandwidth
+        contact_count += 1
+        top_contacts[desc.contact]=(contact_bw,contact_count)
     else:
-        top_contacts[desc.contact]=1
+        top_contacts[desc.contact]=(desc.observed_bandwidth,1)
     if (accumulated_bw > total_exit_bw * TOP_PERCENT/100): break
 
 print "{}% ({} MB/s): {} exit relays".format(TOP_PERCENT,total_exit_bw * TOP_PERCENT/100 / 1024 / 1024, len(top_relays))
@@ -63,19 +66,19 @@ print ""
 fuzzy_contacts = {}
 added = False
 
-for contact, count in top_contacts.iteritems():
+for contact, (bandwidth,count) in top_contacts.iteritems():
     if (contact is None): contact='<none>'
-    for fuzzy_contact,fuzzy_count in fuzzy_contacts.iteritems():
+    for fuzzy_contact,(fuzzy_bandwidth,fuzzy_count) in fuzzy_contacts.iteritems():
         if (SequenceMatcher(None, contact, fuzzy_contact).ratio()>0.9):
-            fuzzy_contacts[fuzzy_contact] = fuzzy_count + count
+            fuzzy_contacts[fuzzy_contact] = ( (fuzzy_bandwidth + bandwidth), (fuzzy_count + count) )
             added = True
     if not added:
-            fuzzy_contacts[contact]=count
+            fuzzy_contacts[contact]=(bandwidth, count)
             added = False
 
 print "Fuzzy total: {}".format(len(fuzzy_contacts.keys()))
 print ""
 
-print "#RELAYS | Contact"
-for contact, count in collections.Counter(fuzzy_contacts).most_common(30):
-    print "{:<7} | {}".format(count, contact)
+print "MBit/s  | #Relays | Contact"
+for contact, (bandwidth, count) in collections.Counter(fuzzy_contacts).most_common(30):
+    print "{:<7} | {:<7} | {}".format(bandwidth / 1024 / 1024 * 8, count, contact)
