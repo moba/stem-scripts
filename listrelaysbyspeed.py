@@ -32,12 +32,17 @@ exits_sorted =  sorted(exits_only, key=lambda descriptor:descriptor.observed_ban
 
 print "%s relays (%s exits)" % (len(descriptors), len(exits_sorted))
 
+total_bw = 0
 total_exit_bw = 0
 
+for desc in descriptors:
+    total_bw += desc.observed_bandwidth
 for desc in exits_sorted:
     total_exit_bw += desc.observed_bandwidth
 
+print "total bandwidth non-exit relays: {} MB/s".format( (total_bw-total_exit_bw) / 1024 / 1024)
 print "total bandwidth exit relays: {} MB/s".format(total_exit_bw / 1024 / 1024)
+print ""
 
 accumulated_bw = 0
 top_relays=[]
