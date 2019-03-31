@@ -15,12 +15,12 @@ import os
 import collections
 from difflib import SequenceMatcher
 
-print "Fetching latest descriptors, can take a while..."
-
 if os.path.exists('cached-consensus'):
+    print "Using cached-consensus present in current directory:"
     descriptors = parse_file('cached-consensus')
 else:
-    downloader = DescriptorDownloader(use_mirrors=True, timeout=10)
+    print "Fetching latest descriptors, can take a while..."
+    downloader = DescriptorDownloader()
     query = downloader.get_server_descriptors()
     descriptors = query.run()
 
